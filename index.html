@@ -74,6 +74,26 @@
             .then(data => console.log("Google Sheet response:", data))
             .catch(error => console.error("Error:", error));
     }
+function showError(error) {
+    let status = document.getElementById("status");
+    switch (error.code) {
+        case error.PERMISSION_DENIED:
+            status.innerText = "❌ Location access denied. Please enable location.";
+            break;
+        case error.POSITION_UNAVAILABLE:
+            status.innerText = "❌ Location information is unavailable.";
+            break;
+        case error.TIMEOUT:
+            status.innerText = "❌ The request to get location timed out.";
+            break;
+        default:
+            status.innerText = "❌ An unknown error occurred.";
+            break;
+    }
+}
+
+
+
 </script>
 
 </body>
