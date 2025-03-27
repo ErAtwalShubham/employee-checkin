@@ -82,7 +82,7 @@ function sendToGoogleSheet(lat, lng) {
             let placeName = data.display_name || "Unknown Location";
             console.log("📍 Detected Place Name:", placeName);
 
-            let url = "https://script.google.com/u/0/home/projects/14CiRtmPbV6Dp4bjY_ILBLc6uk8yVDTXTnrI_SgH0lIYqyHpNBjUX_wWG/edit"; // Replace with your Google Apps Script URL
+            let url = "https://script.google.com/macros/s/AKfycbyWdI6weKqge4wl380FR3dj4NkqLoQMNGZeQLYr3FtJg73OoEfixNyQzYkpFD7dde0/exec"; // Replace with your Google Apps Script URL
             let params = {
                 method: "POST",
                 body: JSON.stringify({ latitude: lat, longitude: lng, locationName: placeName, employee: employeeName })
