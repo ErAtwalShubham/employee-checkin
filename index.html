@@ -18,48 +18,48 @@
     <p id="status"></p>
 
    <script>
-    const allowedPlace = "Sebiz Infotech"; // Your office name
+    const allowedPlace = "Sebiz Infotech"; // Office name
 
     function getLocation() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(getPlaceName, showError, { enableHighAccuracy: true });
         } else {
-            document.getElementById("status").innerText = "Geolocation not supported.";
+            document.getElementById("status").innerText = "❌ Geolocation not supported.";
         }
     }
 
     function getPlaceName(position) {
-    let lat = position.coords.latitude;
-    let lng = position.coords.longitude;
-    let geocodeUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+        let lat = position.coords.latitude;
+        let lng = position.coords.longitude;
+        let geocodeUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
 
-    fetch(geocodeUrl)
-        .then(response => response.json())
-        .then(data => {
-            let placeName = data.display_name;
-            console.log("Detected Place Name:", placeName); // Log the detected place
-            checkLocation(placeName);
-        })
-        .catch(error => {
-            document.getElementById("status").innerText = "Error getting location.";
-            console.error(error);
-        });
-}
-
+        fetch(geocodeUrl)
+            .then(response => response.json())
+            .then(data => {
+                let placeName = data.display_name;
+                console.log("📍 Detected Place Name:", placeName); // Debugging line
+                checkLocation(placeName);
+            })
+            .catch(error => {
+                document.getElementById("status").innerText = "❌ Error getting location.";
+                console.error("Geocode API Error:", error);
+            });
+    }
 
     function checkLocation(placeName) {
-        if (placeName.includes(allowedPlace)) {
+        if (placeName.toLowerCase().includes(allowedPlace.toLowerCase())) {
             document.getElementById("status").innerText = "✅ Check-in successful at " + placeName;
             sendToGoogleSheet(placeName);
         } else {
             document.getElementById("status").innerText = "❌ Check-in failed! You are not at " + allowedPlace;
+            console.log("🚨 Mismatch: Expected", allowedPlace, "but got", placeName);
         }
     }
 
     function sendToGoogleSheet(placeName) {
         let employeeName = document.getElementById("employeeName").value;
         if (!employeeName) {
-            document.getElementById("status").innerText = "Please enter your name.";
+            document.getElementById("status").innerText = "❌ Please enter your name.";
             return;
         }
 
@@ -71,29 +71,27 @@
 
         fetch(url, params)
             .then(response => response.text())
-            .then(data => console.log("Google Sheet response:", data))
-            .catch(error => console.error("Error:", error));
+            .then(data => console.log("✅ Google Sheet response:", data))
+            .catch(error => console.error("❌ Google Sheet Error:", error));
     }
-function showError(error) {
-    let status = document.getElementById("status");
-    switch (error.code) {
-        case error.PERMISSION_DENIED:
-            status.innerText = "❌ Location access denied. Please enable location.";
-            break;
-        case error.POSITION_UNAVAILABLE:
-            status.innerText = "❌ Location information is unavailable.";
-            break;
-        case error.TIMEOUT:
-            status.innerText = "❌ The request to get location timed out.";
-            break;
-        default:
-            status.innerText = "❌ An unknown error occurred.";
-            break;
+
+    function showError(error) {
+        let status = document.getElementById("status");
+        switch (error.code) {
+            case error.PERMISSION_DENIED:
+                status.innerText = "❌ Location access denied. Please enable location.";
+                break;
+            case error.POSITION_UNAVAILABLE:
+                status.innerText = "❌ Location information is unavailable.";
+                break;
+            case error.TIMEOUT:
+                status.innerText = "❌ The request to get location timed out.";
+                break;
+            default:
+                status.innerText = "❌ An unknown error occurred.";
+                break;
+        }
     }
-}
-
-
-
 </script>
 
 </body>
