@@ -75,6 +75,7 @@
             .catch(error => console.error("❌ Google Sheet Error:", error));
     }
 
+    // ✅ FIXED: Ensure showError() is properly defined
     function showError(error) {
         let status = document.getElementById("status");
         switch (error.code) {
