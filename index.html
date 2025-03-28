@@ -20,15 +20,8 @@
             border-radius: 15px;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
         }
-        h2 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-        p {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
+        h2 { color: #333; margin-bottom: 10px; }
+        p { color: #666; font-size: 14px; margin-bottom: 20px; }
         input {
             width: 90%;
             padding: 12px;
@@ -39,9 +32,7 @@
             outline: none;
             transition: border 0.3s;
         }
-        input:focus {
-            border-color: #007bff;
-        }
+        input:focus { border-color: #007bff; }
         button {
             width: 100%;
             background: #007bff;
@@ -53,26 +44,17 @@
             cursor: pointer;
             transition: background 0.3s ease;
         }
-        button:hover {
-            background: #0056b3;
-        }
+        button:hover { background: #0056b3; }
         #status {
             margin-top: 15px;
             font-weight: bold;
-            color: #333;
             padding: 10px;
-            background: #e9ecef;
             border-radius: 5px;
             display: none;
         }
-        .success {
-            color: #28a745;
-            background: #d4edda;
-        }
-        .error {
-            color: #dc3545;
-            background: #f8d7da;
-        }
+        .success { color: #28a745; background: #d4edda; }
+        .error { color: #dc3545; background: #f8d7da; }
+        .loading { color: #ffc107; background: #fff3cd; }
     </style>
 </head>
 <body>
@@ -85,13 +67,12 @@
     </div>
 
  <script>
-const apiUrl = "https://script.google.com/macros/s/AKfycby3YRz8ucrLJWi14ruMf2gzHNgc1yLN7ReEtjYcrxbUzdc39DjClgxOk8AnE2NH2dxB/exec"; // Replace with your Google Apps Script Web App URL
+const apiUrl = "https://script.google.com/macros/s/AKfycby3YRz8ucrLJWi14ruMf2gzHNgc1yLN7ReEtjYcrxbUzdc39DjClgxOk8AnE2NH2dxB/exec"; 
 
 function getLocation() {
     let status = document.getElementById("status");
     status.style.display = "block";
-    status.innerText = "⌛ Checking employee name...";
-    status.className = "";
+    updateStatus("⌛ Checking employee name...", "loading");
 
     let employeeName = document.getElementById("employeeName").value.trim();
     if (!employeeName) {
@@ -99,15 +80,16 @@ function getLocation() {
         return;
     }
 
-    // ✅ First, check if the employee exists in Google Sheets
+    // ✅ Validate Employee Name
     fetch(apiUrl, { 
-        method: "POST", 
-        body: JSON.stringify({ employee: employeeName, validateOnly: true }) 
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ employee: employeeName, validateOnly: true }),
     })
-    .then(response => response.text())
+    .then(response => response.json())  // ✅ Ensure JSON parsing
     .then(result => {
-        if (result.includes("✅ Employee found")) {
-            updateStatus("⌛ Employee verified. Checking location...", "");
+        if (result.status === "success") {
+            updateStatus("✅ Employee verified. Checking location...", "loading");
             checkGeolocation(employeeName);
         } else {
             updateStatus("❌ Access Denied! Employee not found.", "error");
@@ -134,8 +116,7 @@ function checkGeolocation(employeeName) {
 function getLatLng(position, employeeName) {
     let lat = position.coords.latitude.toFixed(6);
     let lng = position.coords.longitude.toFixed(6);
-
-    updateStatus("⌛ Verifying location...", "");
+    updateStatus("⌛ Verifying location...", "loading");
     checkLocation(lat, lng, employeeName);
 }
 
@@ -173,19 +154,17 @@ function sendToGoogleSheet(lat, lng, employeeName) {
         .then(response => response.json())
         .then(data => {
             let placeName = data.display_name || "Unknown Location";
-            console.log("📍 Detected Place Name:", placeName);
 
-            let url = apiUrl;
             let params = {
                 method: "POST",
-                body: JSON.stringify({ latitude: lat, longitude: lng, locationName: placeName, employee: employeeName })
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ latitude: lat, longitude: lng, locationName: placeName, employee: employeeName }),
             };
 
-            fetch(url, params)
-                .then(response => response.text())
-                .then(data => console.log("✅ Google Sheet response:", data))
-                .catch(error => console.error("❌ Google Sheet Error:", error));
+            return fetch(apiUrl, params);
         })
+        .then(response => response.json())
+        .then(data => console.log("✅ Google Sheet response:", data))
         .catch(error => {
             updateStatus("❌ Could not fetch location name.", "error");
             console.error("❌ Reverse Geocoding Error:", error);
@@ -216,8 +195,6 @@ function updateStatus(message, statusType) {
     status.style.display = "block";
 }
 </script>
-
-
 
 </body>
 </html>
