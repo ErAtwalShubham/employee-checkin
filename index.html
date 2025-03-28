@@ -78,7 +78,7 @@
 <body>
     <div class="container">
         <h2>Employee Check-in</h2>
-        <p>Click the button below to check in from the office.</p>
+        <p>Click the button below to check in <b style="color: red;">Vibe24 Cafe</b></p>
         <input type="text" id="employeeName" placeholder="Enter your name">
         <button onclick="getLocation()">Check-in</button>
         <p id="status"></p>
@@ -115,8 +115,8 @@
    }
 
    function checkLocation(lat, lng) {
-       const officeLat = 30.680277; // Your office latitude
-       const officeLng = 76.726334; // Your office longitude
+       const officeLat = 30.738049; // Your office latitude
+       const officeLng = 76.629708; // Your office longitude
        const allowedRadius = 0.5; // 500 meters
 
        let distance = getDistance(lat, lng, officeLat, officeLng);
