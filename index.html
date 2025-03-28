@@ -145,15 +145,13 @@
    }
 
    function sendToGoogleSheet(lat, lng) {
-       let employeeName = document.getElementById("employeeName").value;
+       let employeeName = document.getElementById("employeeName").value.trim();
        if (!employeeName) {
-           let status = document.getElementById("status");
-           status.innerText = "❌ Please enter your name.";
-           status.className = "error";
+           updateStatus("❌ Please enter your name.", "error");
            return;
        }
 
-       let reverseGeocodeUrl = 'https://us1.locationiq.com/v1/reverse.php?key=pk.c3cdd32b37bc09080499ae0e61e8310f&lat=${lat}&lon=${lng}&format=json';
+       let reverseGeocodeUrl = `https://us1.locationiq.com/v1/reverse.php?key=pk.c3cdd32b37bc09080499ae0e61e8310f&lat=${lat}&lon=${lng}&format=json`;
 
        fetch(reverseGeocodeUrl)
            .then(response => response.json())
@@ -161,23 +159,40 @@
                let placeName = data.display_name || "Unknown Location";
                console.log("📍 Detected Place Name:", placeName);
 
-               let url = "https://script.google.com/macros/s/AKfycbxogCoeDzDnD84OIMl62j4JqmbjWBfTnP1p7ig-TED-kwXrXkC71eIoz4rdmIoic_jx/exec"; // Your Google Apps Script URL
+               let url = "https://script.google.com/macros/s/AKfycbyg-dtjh5-qk4BcnIhzQDafhIK7V5T-KnEYnIRqom2Ly-O8NqBcy5bJPYglHC31by-u/exec";
                let params = {
                    method: "POST",
-                   body: JSON.stringify({ latitude: lat, longitude: lng, locationName: placeName, employee: employeeName })
+                   headers: { "Content-Type": "application/json" },
+                   body: JSON.stringify({ 
+                       latitude: lat, 
+                       longitude: lng, 
+                       locationName: placeName, 
+                       employee: employeeName 
+                   })
                };
 
                fetch(url, params)
                    .then(response => response.text())
-                   .then(data => console.log("✅ Google Sheet response:", data))
-                   .catch(error => console.error("❌ Google Sheet Error:", error));
+                   .then(data => {
+                       console.log("✅ Google Sheet response:", data);
+                       updateStatus("✅ Check-in recorded successfully!", "success");
+                   })
+                   .catch(error => {
+                       updateStatus("❌ Could not send data to Google Sheet.", "error");
+                       console.error("❌ Google Sheet Error:", error);
+                   });
            })
            .catch(error => {
-               let status = document.getElementById("status");
-               status.innerText = "❌ Could not fetch location name.";
-               status.className = "error";
+               updateStatus("❌ Could not fetch location name.", "error");
                console.error("❌ Reverse Geocoding Error:", error);
            });
+   }
+
+   function updateStatus(message, statusType) {
+       let status = document.getElementById("status");
+       status.innerText = message;
+       status.className = statusType;
+       status.style.display = "block";
    }
 
    function showError(error) {
