@@ -84,117 +84,139 @@
         <p id="status"></p>
     </div>
 
-    <script>
-        function getLocation() {
-            let status = document.getElementById("status");
-            status.style.display = "block";
-            status.innerText = "⌛ Checking location...";
-            status.className = "";
+  <script>
+const apiUrl = "YOUR_DEPLOYED_SCRIPT_URL"; // Replace with your Google Apps Script Web App URL
 
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(getLatLng, showError, {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0
-                });
-            } else {
-                updateStatus("❌ Geolocation not supported.", "error");
-            }
+function getLocation() {
+    let status = document.getElementById("status");
+    status.style.display = "block";
+    status.innerText = "⌛ Checking employee name...";
+    status.className = "";
+
+    let employeeName = document.getElementById("employeeName").value.trim();
+    if (!employeeName) {
+        updateStatus("❌ Please enter your name.", "error");
+        return;
+    }
+
+    // ✅ First, check if the employee exists in Google Sheets
+    fetch(apiUrl, { 
+        method: "POST", 
+        body: JSON.stringify({ employee: employeeName, validateOnly: true }) 
+    })
+    .then(response => response.text())
+    .then(result => {
+        if (result.includes("✅ Employee found")) {
+            updateStatus("⌛ Employee verified. Checking location...", "");
+            checkGeolocation(employeeName);
+        } else {
+            updateStatus("❌ Access Denied! Employee not found.", "error");
         }
+    })
+    .catch(error => {
+        updateStatus("❌ Server error while verifying employee.", "error");
+        console.error("❌ API Error:", error);
+    });
+}
 
-        function getLatLng(position) {
-            let lat = position.coords.latitude.toFixed(6);
-            let lng = position.coords.longitude.toFixed(6);
+function checkGeolocation(employeeName) {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => getLatLng(position, employeeName), 
+            showError, 
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+    } else {
+        updateStatus("❌ Geolocation not supported.", "error");
+    }
+}
 
-            updateStatus("⌛ Verifying location...", "");
+function getLatLng(position, employeeName) {
+    let lat = position.coords.latitude.toFixed(6);
+    let lng = position.coords.longitude.toFixed(6);
 
-            checkLocation(lat, lng);
-        }
+    updateStatus("⌛ Verifying location...", "");
+    checkLocation(lat, lng, employeeName);
+}
 
-        function checkLocation(lat, lng) {
-            let employeeName = document.getElementById("employeeName").value.trim();
+function checkLocation(lat, lng, employeeName) {
+    const officeLat = 30.680277;
+    const officeLng = 76.726334;
+    const allowedRadius = 0.5;
 
-            if (!employeeName) {
-                updateStatus("❌ Please enter your name.", "error");
-                return;
-            }
+    let distance = calculateDistance(lat, lng, officeLat, officeLng);
 
-            const officeLat = 30.680277;
-            const officeLng = 76.726334;
-            const allowedRadius = 0.5;
+    if (distance <= allowedRadius) {
+        updateStatus("✅ Check-in successful!", "success");
+        sendToGoogleSheet(lat, lng, employeeName);
+    } else {
+        updateStatus("❌ Check-in failed! You are outside the allowed area.", "error");
+    }
+}
 
-            let distance = calculateDistance(lat, lng, officeLat, officeLng);
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    function deg2rad(deg) { return deg * (Math.PI / 180); }
+    let R = 6371;
+    let dLat = deg2rad(lat2 - lat1);
+    let dLon = deg2rad(lon2 - lon1);
+    let a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
 
-            if (distance <= allowedRadius) {
-                updateStatus("✅ Check-in successful!", "success");
-                sendToGoogleSheet(lat, lng, employeeName);
-            } else {
-                updateStatus("❌ Check-in failed! You are outside the allowed area.", "error");
-            }
-        }
+function sendToGoogleSheet(lat, lng, employeeName) {
+    let reverseGeocodeUrl = `https://us1.locationiq.com/v1/reverse.php?key=pk.c3cdd32b37bc09080499ae0e61e8310f&lat=${lat}&lon=${lng}&format=json`;
 
-        function calculateDistance(lat1, lon1, lat2, lon2) {
-            function deg2rad(deg) { return deg * (Math.PI / 180); }
-            let R = 6371; // Earth radius in km
-            let dLat = deg2rad(lat2 - lat1);
-            let dLon = deg2rad(lon2 - lon1);
-            let a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-                    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-            let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            return R * c; // Distance in km
-        }
+    fetch(reverseGeocodeUrl)
+        .then(response => response.json())
+        .then(data => {
+            let placeName = data.display_name || "Unknown Location";
+            console.log("📍 Detected Place Name:", placeName);
 
-        function sendToGoogleSheet(lat, lng, employeeName) {
-            let reverseGeocodeUrl = `https://us1.locationiq.com/v1/reverse.php?key=pk.c3cdd32b37bc09080499ae0e61e8310f&lat=${lat}&lon=${lng}&format=json`;
+            let url = apiUrl;
+            let params = {
+                method: "POST",
+                body: JSON.stringify({ latitude: lat, longitude: lng, locationName: placeName, employee: employeeName })
+            };
 
-            fetch(reverseGeocodeUrl)
-                .then(response => response.json())
-                .then(data => {
-                    let placeName = data.display_name || "Unknown Location";
-                    console.log("📍 Detected Place Name:", placeName);
+            fetch(url, params)
+                .then(response => response.text())
+                .then(data => console.log("✅ Google Sheet response:", data))
+                .catch(error => console.error("❌ Google Sheet Error:", error));
+        })
+        .catch(error => {
+            updateStatus("❌ Could not fetch location name.", "error");
+            console.error("❌ Reverse Geocoding Error:", error);
+        });
+}
 
-                    let url = "https://script.google.com/macros/s/AKfycbyWdI6weKqge4wl380FR3dj4NkqLoQMNGZeQLYr3FtJg73OoEfixNyQzYkpFD7dde0/exec";
-                    let params = {
-                        method: "POST",
-                        body: JSON.stringify({ latitude: lat, longitude: lng, locationName: placeName, employee: employeeName })
-                    };
+function showError(error) {
+    switch (error.code) {
+        case error.PERMISSION_DENIED:
+            updateStatus("❌ Location access denied. Please enable location.", "error");
+            break;
+        case error.POSITION_UNAVAILABLE:
+            updateStatus("❌ Location information is unavailable.", "error");
+            break;
+        case error.TIMEOUT:
+            updateStatus("❌ The request to get location timed out.", "error");
+            break;
+        default:
+            updateStatus("❌ An unknown error occurred.", "error");
+            break;
+    }
+}
 
-                    fetch(url, params)
-                        .then(response => response.text())
-                        .then(data => console.log("✅ Google Sheet response:", data))
-                        .catch(error => console.error("❌ Google Sheet Error:", error));
-                })
-                .catch(error => {
-                    updateStatus("❌ Could not fetch location name.", "error");
-                    console.error("❌ Reverse Geocoding Error:", error);
-                });
-        }
+function updateStatus(message, statusType) {
+    let status = document.getElementById("status");
+    status.innerText = message;
+    status.className = statusType;
+    status.style.display = "block";
+}
+</script>
 
-        function showError(error) {
-            switch (error.code) {
-                case error.PERMISSION_DENIED:
-                    updateStatus("❌ Location access denied. Please enable location.", "error");
-                    break;
-                case error.POSITION_UNAVAILABLE:
-                    updateStatus("❌ Location information is unavailable.", "error");
-                    break;
-                case error.TIMEOUT:
-                    updateStatus("❌ The request to get location timed out.", "error");
-                    break;
-                default:
-                    updateStatus("❌ An unknown error occurred.", "error");
-                    break;
-            }
-        }
-
-        function updateStatus(message, statusType) {
-            let status = document.getElementById("status");
-            status.innerText = message;
-            status.className = statusType;
-            status.style.display = "block";
-        }
-    </script>
 
 </body>
 </html>
