@@ -161,7 +161,7 @@
                let placeName = data.display_name || "Unknown Location";
                console.log("📍 Detected Place Name:", placeName);
 
-               let url = "https://script.google.com/macros/s/AKfycbyVukG4G0w-qySjdCEnvtHYL2kCQ2oenykdfAND1TNMbKNwmv-7wKYuSxeU86w634MI/exec"; // Your Google Apps Script URL
+               let url = "https://script.google.com/macros/s/AKfycbwtzu98IeYxVbWZfnyIL2P-_WYCpyz_Me2eJl1rqRdi0ZbbWzvPc-ZOsEUQqzPJjqdl/exec"; // Your Google Apps Script URL
                let params = {
                    method: "POST",
                    body: JSON.stringify({ latitude: lat, longitude: lng, locationName: placeName, employee: employeeName })
