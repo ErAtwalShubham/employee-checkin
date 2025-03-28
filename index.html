@@ -62,14 +62,14 @@
         <h2>Employee Check-in</h2>
         <p>Click the button below to check in at <b style="color: red;">Vibe24 Cafe</b></p>
         <input type="text" id="employeeName" placeholder="Enter your name">
-        <button onclick="getLocation()">Check-in</button>
+        <button onclick="checkEmployee()">Check-in</button>
         <p id="status"></p>
     </div>
 
  <script>
 const apiUrl = "https://script.google.com/macros/s/AKfycbxo_umwq2wWerMaz6fLi_O1uvsSJuUBhXfl7L74j4ck9y-22zaU3GgAend3Pkeirg6s/exec"; 
 
-function getLocation() {
+function checkEmployee() {
     let status = document.getElementById("status");
     status.style.display = "block";
     updateStatus("⌛ Checking employee name...", "loading");
@@ -80,18 +80,17 @@ function getLocation() {
         return;
     }
 
-    // ✅ Fix: Ensure correct headers for API request
+    // ✅ Ensure correct API request
     fetch(apiUrl, { 
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ employee: employeeName })
+        body: JSON.stringify({ employee: employeeName }) // Send employee name only
     })
-    .then(response => response.text())  // ✅ Handle non-JSON responses
+    .then(response => response.text())  
     .then(result => {
         console.log("✅ API Response:", result);
         if (result.includes("✅ Check-in recorded")) {
-            updateStatus("✅ Employee verified. Checking location...", "success");
-            checkGeolocation(employeeName);
+            updateStatus("✅ Check-in successful!", "success");
         } else {
             updateStatus("❌ Access Denied! Employee not found.", "error");
         }
@@ -100,94 +99,6 @@ function getLocation() {
         updateStatus("❌ Server error while verifying employee.", "error");
         console.error("❌ API Error:", error);
     });
-}
-
-
-function checkGeolocation(employeeName) {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (position) => getLatLng(position, employeeName), 
-            showError, 
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-        );
-    } else {
-        updateStatus("❌ Geolocation not supported.", "error");
-    }
-}
-
-function getLatLng(position, employeeName) {
-    let lat = position.coords.latitude.toFixed(6);
-    let lng = position.coords.longitude.toFixed(6);
-    updateStatus("⌛ Verifying location...", "loading");
-    checkLocation(lat, lng, employeeName);
-}
-
-function checkLocation(lat, lng, employeeName) {
-    const officeLat = 30.680277;
-    const officeLng = 76.726334;
-    const allowedRadius = 0.5;
-
-    let distance = calculateDistance(lat, lng, officeLat, officeLng);
-
-    if (distance <= allowedRadius) {
-        updateStatus("✅ Check-in successful!", "success");
-        sendToGoogleSheet(lat, lng, employeeName);
-    } else {
-        updateStatus("❌ Check-in failed! You are outside the allowed area.", "error");
-    }
-}
-
-function calculateDistance(lat1, lon1, lat2, lon2) {
-    function deg2rad(deg) { return deg * (Math.PI / 180); }
-    let R = 6371;
-    let dLat = deg2rad(lat2 - lat1);
-    let dLon = deg2rad(lon2 - lon1);
-    let a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-}
-
-function sendToGoogleSheet(lat, lng, employeeName) {
-    let reverseGeocodeUrl = `https://us1.locationiq.com/v1/reverse.php?key=pk.c3cdd32b37bc09080499ae0e61e8310f&lat=${lat}&lon=${lng}&format=json`;
-
-    fetch(reverseGeocodeUrl)
-        .then(response => response.json())
-        .then(data => {
-            let placeName = data.display_name || "Unknown Location";
-
-            let params = {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ latitude: lat, longitude: lng, locationName: placeName, employee: employeeName }),
-            };
-
-            return fetch(apiUrl, params);
-        })
-        .then(response => response.json())
-        .then(data => console.log("✅ Google Sheet response:", data))
-        .catch(error => {
-            updateStatus("❌ Could not fetch location name.", "error");
-            console.error("❌ Reverse Geocoding Error:", error);
-        });
-}
-
-function showError(error) {
-    switch (error.code) {
-        case error.PERMISSION_DENIED:
-            updateStatus("❌ Location access denied. Please enable location.", "error");
-            break;
-        case error.POSITION_UNAVAILABLE:
-            updateStatus("❌ Location information is unavailable.", "error");
-            break;
-        case error.TIMEOUT:
-            updateStatus("❌ The request to get location timed out.", "error");
-            break;
-        default:
-            updateStatus("❌ An unknown error occurred.", "error");
-            break;
-    }
 }
 
 function updateStatus(message, statusType) {
