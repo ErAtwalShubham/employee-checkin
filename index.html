@@ -80,16 +80,17 @@ function getLocation() {
         return;
     }
 
-    // ✅ Validate Employee Name
+    // ✅ Fix: Ensure correct headers for API request
     fetch(apiUrl, { 
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ employee: employeeName, validateOnly: true }),
+        body: JSON.stringify({ employee: employeeName })
     })
-    .then(response => response.json())  // ✅ Ensure JSON parsing
+    .then(response => response.text())  // ✅ Handle non-JSON responses
     .then(result => {
-        if (result.status === "success") {
-            updateStatus("✅ Employee verified. Checking location...", "loading");
+        console.log("✅ API Response:", result);
+        if (result.includes("✅ Check-in recorded")) {
+            updateStatus("✅ Employee verified. Checking location...", "success");
             checkGeolocation(employeeName);
         } else {
             updateStatus("❌ Access Denied! Employee not found.", "error");
@@ -100,6 +101,7 @@ function getLocation() {
         console.error("❌ API Error:", error);
     });
 }
+
 
 function checkGeolocation(employeeName) {
     if (navigator.geolocation) {
