@@ -22,6 +22,17 @@
         }
         h2 { color: #333; margin-bottom: 10px; }
         p { color: #666; font-size: 14px; margin-bottom: 20px; }
+        input {
+            width: 90%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            outline: none;
+            transition: border 0.3s;
+        }
+        input:focus { border-color: #007bff; }
         button {
             width: 100%;
             background: #007bff;
@@ -50,6 +61,7 @@
     <div class="container">
         <h2>Employee Check-in</h2>
         <p>Click the button below to check in at <b style="color: red;">Vibe24 Cafe</b></p>
+        <input type="text" id="employeeName" placeholder="Enter your name">
         <button onclick="getLocation()">Check-in</button>
         <p id="status"></p>
     </div>
@@ -62,9 +74,15 @@ function getLocation() {
     status.style.display = "block";
     updateStatus("⌛ Getting location...", "loading");
 
+    let employeeName = document.getElementById("employeeName").value.trim();
+    if (!employeeName) {
+        updateStatus("❌ Please enter your name.", "error");
+        return;
+    }
+
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
-            (position) => getLatLng(position), 
+            (position) => getLatLng(position, employeeName), 
             showError, 
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
         );
@@ -73,14 +91,14 @@ function getLocation() {
     }
 }
 
-function getLatLng(position) {
+function getLatLng(position, employeeName) {
     let lat = position.coords.latitude.toFixed(6);
     let lng = position.coords.longitude.toFixed(6);
     updateStatus("⌛ Verifying location...", "loading");
-    checkLocation(lat, lng);
+    checkLocation(lat, lng, employeeName);
 }
 
-function checkLocation(lat, lng) {
+function checkLocation(lat, lng, employeeName) {
     const officeLat = 30.680277;
     const officeLng = 76.726334;
     const allowedRadius = 0.5;
@@ -89,7 +107,7 @@ function checkLocation(lat, lng) {
 
     if (distance <= allowedRadius) {
         updateStatus("✅ Check-in successful!", "success");
-        sendToGoogleSheet(lat, lng);
+        sendToGoogleSheet(lat, lng, employeeName);
     } else {
         updateStatus("❌ Check-in failed! You are outside the allowed area.", "error");
     }
@@ -107,11 +125,11 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     return R * c;
 }
 
-function sendToGoogleSheet(lat, lng) {
+function sendToGoogleSheet(lat, lng, employeeName) {
     let params = {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ latitude: lat, longitude: lng })
+        body: JSON.stringify({ employee: employeeName, latitude: lat, longitude: lng })
     };
 
     fetch(apiUrl, params)
