@@ -78,15 +78,13 @@
 <body>
     <div class="container">
         <h2>Employee Check-in</h2>
-        <p>Click the button below to check in <b style="color: red;">Vibe24 Cafe</b></p>
+        <p>Click the button below to check in at <b style="color: red;">Vibe24 Cafe</b></p>
         <input type="text" id="employeeName" placeholder="Enter your name">
         <button onclick="getLocation()">Check-in</button>
         <p id="status"></p>
     </div>
 
    <script>
-   const apiUrl = "https://script.google.com/macros/s/AKfycbyVukG4G0w-qySjdCEnvtHYL2kCQ2oenykdfAND1TNMbKNwmv-7wKYuSxeU86w634MI/exec"; // Your Google Apps Script URL
-
    function getLocation() {
        let status = document.getElementById("status");
        status.style.display = "block";
@@ -132,11 +130,11 @@
        if (distance <= allowedRadius) {
            status.innerText = "✅ Check-in successful!";
            status.className = "success";
-           sendToGoogleSheet(lat, lng, employeeName);
+           sendToGoogleSheet(lat, lng, employeeName, "✅ Inside Region");
        } else {
            status.innerText = "❌ Check-in recorded, but you are outside the allowed area.";
            status.className = "error";
-           sendToGoogleSheet(lat, lng, employeeName);
+           sendToGoogleSheet(lat, lng, employeeName, "❌ Outside Region");
        }
    }
 
@@ -152,16 +150,18 @@
        return R * c; 
    }
 
-   function sendToGoogleSheet(lat, lng, employeeName) {
+   function sendToGoogleSheet(lat, lng, employeeName, checkinStatus) {
        let status = document.getElementById("status");
+
+       let url = "https://script.google.com/macros/s/AKfycbyVukG4G0w-qySjdCEnvtHYL2kCQ2oenykdfAND1TNMbKNwmv-7wKYuSxeU86w634MI/exec"; // Google Apps Script URL
 
        let params = {
            method: "POST",
            headers: { "Content-Type": "application/json" },
-           body: JSON.stringify({ latitude: lat, longitude: lng, employee: employeeName })
+           body: JSON.stringify({ latitude: lat, longitude: lng, employee: employeeName, status: checkinStatus })
        };
 
-       fetch(apiUrl, params)
+       fetch(url, params)
            .then(response => response.text())
            .then(data => {
                console.log("✅ Google Sheet Response:", data);
