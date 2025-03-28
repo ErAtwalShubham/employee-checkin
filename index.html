@@ -20,8 +20,15 @@
             border-radius: 15px;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
         }
-        h2 { color: #333; margin-bottom: 10px; }
-        p { color: #666; font-size: 14px; margin-bottom: 20px; }
+        h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
         input {
             width: 90%;
             padding: 12px;
@@ -32,7 +39,9 @@
             outline: none;
             transition: border 0.3s;
         }
-        input:focus { border-color: #007bff; }
+        input:focus {
+            border-color: #007bff;
+        }
         button {
             width: 100%;
             background: #007bff;
@@ -44,22 +53,32 @@
             cursor: pointer;
             transition: background 0.3s ease;
         }
-        button:hover { background: #0056b3; }
+        button:hover {
+            background: #0056b3;
+        }
         #status {
             margin-top: 15px;
             font-weight: bold;
+            color: #333;
             padding: 10px;
+            background: #e9ecef;
             border-radius: 5px;
             display: none;
         }
-        .success { color: #28a745; background: #d4edda; }
-        .error { color: #dc3545; background: #f8d7da; }
+        .success {
+            color: #28a745;
+            background: #d4edda;
+        }
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>Employee Check-in</h2>
-        <p>Click the button below to check in at <b style="color: red;">Vibe24 Cafe</b></p>
+        <p>Click the button below to check in <b style="color: red;">Vibe24 Cafe</b></p>
         <input type="text" id="employeeName" placeholder="Enter your name">
         <button onclick="getLocation()">Check-in</button>
         <p id="status"></p>
@@ -72,35 +91,30 @@
        status.innerText = "⌛ Checking location...";
        status.className = "";
        
-       let employeeName = document.getElementById("employeeName").value.trim();
-       if (!employeeName) {
-           status.innerText = "❌ Please enter your name.";
-           status.className = "error";
-           return;
-       }
-
        if (navigator.geolocation) {
-           navigator.geolocation.getCurrentPosition(
-               (position) => getLatLng(position, employeeName), 
-               showError, 
-               { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-           );
+           navigator.geolocation.getCurrentPosition(getLatLng, showError, { 
+               enableHighAccuracy: true, 
+               timeout: 10000, 
+               maximumAge: 0 
+           });
        } else {
            status.innerText = "❌ Geolocation not supported.";
            status.className = "error";
        }
    }
 
-   function getLatLng(position, employeeName) {
+   function getLatLng(position) {
        let lat = position.coords.latitude.toFixed(6); 
        let lng = position.coords.longitude.toFixed(6);
+       
+       // ✅ Do NOT display latitude/longitude in the frontend
        let status = document.getElementById("status");
        status.innerText = "⌛ Verifying location...";
        
-       checkLocation(lat, lng, employeeName);
+       checkLocation(lat, lng);
    }
 
-   function checkLocation(lat, lng, employeeName) {
+   function checkLocation(lat, lng) {
        const officeLat = 30.738049; // Your office latitude
        const officeLng = 76.629708; // Your office longitude
        const allowedRadius = 0.5; // 500 meters
@@ -111,11 +125,10 @@
        if (distance <= allowedRadius) {
            status.innerText = "✅ Check-in successful!";
            status.className = "success";
-           sendToGoogleSheet(lat, lng, employeeName);
+           sendToGoogleSheet(lat, lng);
        } else {
-           status.innerText = "❌ Check-in recorded, but you are outside the allowed area.";
+           status.innerText = "❌ Check-in failed! You are outside the allowed area.";
            status.className = "error";
-           sendToGoogleSheet(lat, lng, employeeName);
        }
    }
 
@@ -131,10 +144,16 @@
        return R * c; 
    }
 
-   function sendToGoogleSheet(lat, lng, employeeName) {
-       let status = document.getElementById("status");
+   function sendToGoogleSheet(lat, lng) {
+       let employeeName = document.getElementById("employeeName").value;
+       if (!employeeName) {
+           let status = document.getElementById("status");
+           status.innerText = "❌ Please enter your name.";
+           status.className = "error";
+           return;
+       }
 
-       let reverseGeocodeUrl = `https://us1.locationiq.com/v1/reverse.php?key=pk.c3cdd32b37bc09080499ae0e61e8310f&lat=${lat}&lon=${lng}&format=json`;
+       let reverseGeocodeUrl = 'https://us1.locationiq.com/v1/reverse.php?key=pk.c3cdd32b37bc09080499ae0e61e8310f&lat=${lat}&lon=${lng}&format=json';
 
        fetch(reverseGeocodeUrl)
            .then(response => response.json())
@@ -142,11 +161,9 @@
                let placeName = data.display_name || "Unknown Location";
                console.log("📍 Detected Place Name:", placeName);
 
-               let url = "https://script.google.com/macros/s/AKfycbyilqbpGEqXH4TixilBq0GHHIRU5biqu9AVcTkohcoqFbxJfYzpLJtAsu2VWh8nLJIL/exec"; 
-
+               let url = "https://script.google.com/macros/s/AKfycbxogCoeDzDnD84OIMl62j4JqmbjWBfTnP1p7ig-TED-kwXrXkC71eIoz4rdmIoic_jx/exec"; // Your Google Apps Script URL
                let params = {
                    method: "POST",
-                   headers: { "Content-Type": "application/json" },
                    body: JSON.stringify({ latitude: lat, longitude: lng, locationName: placeName, employee: employeeName })
                };
 
@@ -156,6 +173,7 @@
                    .catch(error => console.error("❌ Google Sheet Error:", error));
            })
            .catch(error => {
+               let status = document.getElementById("status");
                status.innerText = "❌ Could not fetch location name.";
                status.className = "error";
                console.error("❌ Reverse Geocoding Error:", error);
