@@ -114,24 +114,25 @@
        checkLocation(lat, lng);
    }
 
-   function checkLocation(lat, lng) {
-       const officeLat = 30.660570; // Your office latitude
-       const officeLng = 76.860510; // Your office longitude
-       const allowedRadius = 0.9; // 500 meters  
+  function checkLocation(lat, lng) {
+    const officeLat = 30.660570; // Your office latitude
+    const officeLng = 76.860510; // Your office longitude
+    const allowedRadius = 0.9; // 500 meters  
 
+    let distance = getDistance(lat, lng, officeLat, officeLng);
+    let status = document.getElementById("status");
 
-       let distance = getDistance(lat, lng, officeLat, officeLng);
-       let status = document.getElementById("status");
+    if (distance <= allowedRadius) {
+        status.innerText = "✅ Check-in successful!";
+        status.className = "success";
+        sendToGoogleSheet(lat, lng, "Within Permitted Location"); // ✅ Status for Google Sheets
+    } else {
+        status.innerText = "✅ Check-in recorded, but you are outside the permitted area.";
+        status.className = "error";
+        sendToGoogleSheet(lat, lng, "Outside Permitted Location"); // ✅ Status for Google Sheets
+    }
+}
 
-       if (distance <= allowedRadius) {
-           status.innerText = "✅ Check-in successful!";
-           status.className = "success";
-           sendToGoogleSheet(lat, lng);
-       } else {
-           status.innerText = "❌ Check-in failed! You are outside the allowed area.";
-           status.className = "error";
-       }
-   }
 
    function getDistance(lat1, lon1, lat2, lon2) {
        function deg2rad(deg) { return deg * (Math.PI / 180); }
@@ -145,41 +146,48 @@
        return R * c; 
    }
 
-   function sendToGoogleSheet(lat, lng) {
-       let employeeName = document.getElementById("employeeName").value;
-       if (!employeeName) {
-           let status = document.getElementById("status");
-           status.innerText = "❌ Please enter your name.";
-           status.className = "error";
-           return;
-       }
+  function sendToGoogleSheet(lat, lng, checkInStatus) {
+    let employeeName = document.getElementById("employeeName").value;
+    if (!employeeName) {
+        let status = document.getElementById("status");
+        status.innerText = "❌ Please enter your name.";
+        status.className = "error";
+        return;
+    }
 
-       let reverseGeocodeUrl = 'https://us1.locationiq.com/v1/reverse.php?key=pk.c3cdd32b37bc09080499ae0e61e8310f&lat=${lat}&lon=${lng}&format=json';
+    let reverseGeocodeUrl = `https://us1.locationiq.com/v1/reverse.php?key=pk.c3cdd32b37bc09080499ae0e61e8310f&lat=${lat}&lon=${lng}&format=json`;
 
-       fetch(reverseGeocodeUrl)
-           .then(response => response.json())
-           .then(data => {
-               let placeName = data.display_name || "Unknown Location";
-               console.log("📍 Detected Place Name:", placeName);
+    fetch(reverseGeocodeUrl)
+        .then(response => response.json())
+        .then(data => {
+            let placeName = data.display_name || "Unknown Location";
+            console.log("📍 Detected Place Name:", placeName);
 
-               let url = "https://script.google.com/macros/s/AKfycbyg-dtjh5-qk4BcnIhzQDafhIK7V5T-KnEYnIRqom2Ly-O8NqBcy5bJPYglHC31by-u/exec"; // Your Google Apps Script URL
-               let params = {
-                   method: "POST",
-                   body: JSON.stringify({ latitude: lat, longitude: lng, locationName: placeName, employee: employeeName })
-               };
+            let url = "https://script.google.com/macros/s/AKfycbyg-dtjh5-qk4BcnIhzQDafhIK7V5T-KnEYnIRqom2Ly-O8NqBcy5bJPYglHC31by-u/exec"; // Your Google Apps Script URL
+            let params = {
+                method: "POST",
+                body: JSON.stringify({
+                    latitude: lat,
+                    longitude: lng,
+                    locationName: placeName,
+                    employee: employeeName,
+                    status: checkInStatus // ✅ Send check-in status
+                })
+            };
 
-               fetch(url, params)
-                   .then(response => response.text())
-                   .then(data => console.log("✅ Google Sheet response:", data))
-                   .catch(error => console.error("❌ Google Sheet Error:", error));
-           })
-           .catch(error => {
-               let status = document.getElementById("status");
-               status.innerText = "❌ Could not fetch location name.";
-               status.className = "error";
-               console.error("❌ Reverse Geocoding Error:", error);
-           });
-   }
+            fetch(url, params)
+                .then(response => response.text())
+                .then(data => console.log("✅ Google Sheet response:", data))
+                .catch(error => console.error("❌ Google Sheet Error:", error));
+        })
+        .catch(error => {
+            let status = document.getElementById("status");
+            status.innerText = "❌ Could not fetch location name.";
+            status.className = "error";
+            console.error("❌ Reverse Geocoding Error:", error);
+        });
+}
+
 
    function showError(error) {
        let status = document.getElementById("status");
