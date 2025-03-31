@@ -115,9 +115,11 @@
    }
 
    function checkLocation(lat, lng) {
-       const officeLat = 30.738049; // Your office latitude
-       const officeLng = 76.629708; // Your office longitude
-       const allowedRadius = 0.5; // 500 meters
+       const officeLat = 30.680483; // Your office latitude
+       const officeLng = 76.726406; // Your office longitude
+       const allowedRadius = 0.5; // 500 meters  
+
+
 
        let distance = getDistance(lat, lng, officeLat, officeLng);
        let status = document.getElementById("status");
