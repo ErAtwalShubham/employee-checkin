@@ -193,7 +193,7 @@ function sendToGoogleSheet(lat, lng, checkInStatus) {
             let placeName = data.display_name || "Unknown Location";
             console.log("📍 Detected Place Name:", placeName);
 
-            let url = "https://script.google.com/macros/s/AKfycbyg-dtjh5-qk4BcnIhzQDafhIK7V5T-KnEYnIRqom2Ly-O8NqBcy5bJPYglHC31by-u/exec";
+            let url = "https://script.google.com/macros/s/AKfycbzfZnQEumYSB_IS2gHR-OBKKOXJSI1akYX7in7Y5VRL5IHegETHLnYAQUzrii-n5n23/exec";
             let params = {
                 method: "POST",
                 body: JSON.stringify({
