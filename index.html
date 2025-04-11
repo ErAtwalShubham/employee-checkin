@@ -1,250 +1,247 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Employee Check-in</title>
-    <style>
-     body {
-    font-family: 'Arial', sans-serif;
-    background-color: #f4f4f9;
-    text-align: center;
-    padding: 0;
-    margin: 0;
-    height: 100vh; /* Full height of the viewport */
-    display: flex;
-    justify-content: center; /* Center horizontally */
-    align-items: center; /* Center vertically */
-}
-.container {
-    background: #f4f4f9; /* Blue background */
-    color: black; /* White text */
-    width: 90%;
-    max-width: 500px;
-    padding: 40px;
-    border-radius: 20px;
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
-    border: 3px solid red; /* Red border */
-}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Employee Check-in</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f4f9;
+      text-align: center;
+      padding: 0;
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
 
-input {
-    width: 95%;
-    padding: 14px;
-    font-size: 18px;
-    border-radius: 5px;
-    border: none;
-    border: 2px solid black; /* Red border */
-    margin-bottom: 15px; /* Space between input and button */
-}
+    .container {
+      background: #f4f4f9;
+      color: black;
+      width: 90%;
+      max-width: 500px;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+      border: 3px solid red;
+    }
 
-button {
-    width: 100%;
-    padding: 14px;
-    font-size: 18px;
-    background: white;
-    color: #007bff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-     border: 2px solid black; /* Red border */
-}
+    h2 {
+      color: #333;
+      margin-bottom: 10px;
+    }
 
-button:hover {
-    background: #0056b3;
-    color: white;
-}
+    p {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
 
-        h2 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-        p {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
-       input {
-    width: 95%; /* Make input fields wider */
-    padding: 14px; /* Increase padding */
-    font-size: 18px; /* Bigger font */
-}
-        input:focus {
-            border-color: #007bff;
-        }
-      button {
-    width: 100%;
-    padding: 14px; /* Increase padding */
-    font-size: 18px; /* Bigger font */
-}
-        button:hover {
-            background: #0056b3;
-        }
-        #status {
-            margin-top: 15px;
-            font-weight: bold;
-            color: #333;
-            padding: 10px;
-            background: #e9ecef;
-            border-radius: 5px;
-            display: none;
-        }
-        .success {
-            color: #28a745;
-            background: #d4edda;
-        }
-        .error {
-            color: #dc3545;
-            background: #f8d7da;
-        }
-    </style>
+    input {
+      width: 95%;
+      padding: 14px;
+      font-size: 18px;
+      border-radius: 5px;
+      border: 2px solid black;
+      margin-bottom: 15px;
+    }
+
+    input:focus {
+      border-color: #007bff;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      font-size: 18px;
+      background: white;
+      color: #007bff;
+      border: 2px solid black;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background: #0056b3;
+      color: white;
+    }
+
+    #status {
+      margin-top: 15px;
+      font-weight: bold;
+      color: #333;
+      padding: 10px;
+      background: #e9ecef;
+      border-radius: 5px;
+      display: none;
+    }
+
+    .success {
+      color: #28a745;
+      background: #d4edda;
+    }
+
+    .error {
+      color: #dc3545;
+      background: #f8d7da;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Employee Check-in</h2>
-        <p>Click the button below to check in <b style="color: red;">Vibe24 Cafe</b></p>
-        <input type="text" id="employeeName" placeholder="Enter your name">
-        <button onclick="getLocation()">Check-in</button>
-        <p id="status"></p>
-    </div>
+  <div class="container">
+    <h2>Employee Check-in</h2>
+    <p>Click the button below to check in <b style="color: red;">Vibe24 Cafe</b></p>
+    <input type="text" id="employeeName" placeholder="Enter your name" />
+    <button onclick="getLocation()">Check-in</button>
+    <p id="status"></p>
+  </div>
 
-   <script>
-   function getLocation() {
-       let status = document.getElementById("status");
-       status.style.display = "block";
-       status.innerText = "⌛ Checking location...";
-       status.className = "";
-       
-       if (navigator.geolocation) {
-           navigator.geolocation.getCurrentPosition(getLatLng, showError, { 
-               enableHighAccuracy: true, 
-               timeout: 10000, 
-               maximumAge: 0 
-           });
-       } else {
-           status.innerText = "❌ Geolocation not supported.";
-           status.className = "error";
-       }
-   }
+  <script>
+    function getLocation() {
+      const status = document.getElementById("status");
+      status.style.display = "block";
+      status.innerText = "⌛ Checking location...";
+      status.className = "";
 
-   function getLatLng(position) {
-       let lat = position.coords.latitude.toFixed(6); 
-       let lng = position.coords.longitude.toFixed(6);
-       
-       // ✅ Do NOT display latitude/longitude in the frontend
-       let status = document.getElementById("status");
-       status.innerText = "⌛ Verifying location...";
-       
-       checkLocation(lat, lng);
-   }
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(getLatLng, showError, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
+        });
+      } else {
+        status.innerText = "❌ Geolocation not supported.";
+        status.className = "error";
+      }
+    }
 
-  function checkLocation(lat, lng) {
-    const officeLat = 30.660570; // Your office latitude
-    const officeLng = 76.860510; // Your office longitude
-    const allowedRadius = 0.9; // 500 meters  
+    function getLatLng(position) {
+      const lat = position.coords.latitude.toFixed(6);
+      const lng = position.coords.longitude.toFixed(6);
 
-    let distance = getDistance(lat, lng, officeLat, officeLng);
-    let status = document.getElementById("status");
+      const status = document.getElementById("status");
+      status.innerText = "⌛ Verifying location...";
 
-    if (distance <= allowedRadius) {
+      checkLocation(lat, lng);
+    }
+
+    function checkLocation(lat, lng) {
+      const officeLat = 30.660570;
+      const officeLng = 76.860510;
+      const allowedRadius = 0.5;
+
+      const distance = getDistance(lat, lng, officeLat, officeLng);
+      const status = document.getElementById("status");
+
+      if (distance <= allowedRadius) {
         status.innerText = "✅ Check-in successful!";
         status.className = "success";
-        sendToGoogleSheet(lat, lng, "Within Permitted Location"); // ✅ Status for Google Sheets
-    } else {
+        sendToGoogleSheet(lat, lng, "Within Permitted Location");
+      } else {
         status.innerText = "✅ Check-in recorded, but you are outside the permitted area.";
         status.className = "error";
-        sendToGoogleSheet(lat, lng, "Outside Permitted Location"); // ✅ Status for Google Sheets
+        sendToGoogleSheet(lat, lng, "Outside Permitted Location");
+      }
     }
-}
 
+    function getDistance(lat1, lon1, lat2, lon2) {
+      function deg2rad(deg) {
+        return deg * (Math.PI / 180);
+      }
 
-   function getDistance(lat1, lon1, lat2, lon2) {
-       function deg2rad(deg) { return deg * (Math.PI / 180); }
-       let R = 6371; 
-       let dLat = deg2rad(lat2 - lat1);
-       let dLon = deg2rad(lon2 - lon1);
-       let a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-               Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-               Math.sin(dLon / 2) * Math.sin(dLon / 2);
-       let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-       return R * c; 
-   }
+      const R = 6371;
+      const dLat = deg2rad(lat2 - lat1);
+      const dLon = deg2rad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(deg2rad(lat1)) *
+          Math.cos(deg2rad(lat2)) *
+          Math.sin(dLon / 2) *
+          Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
 
-function sendToGoogleSheet(lat, lng, checkInStatus) {
-    let employeeName = document.getElementById("employeeName").value;
-    if (!employeeName) {
-        let status = document.getElementById("status");
+    function sendToGoogleSheet(lat, lng, checkInStatus) {
+      const employeeName = document.getElementById("employeeName").value.trim();
+      const status = document.getElementById("status");
+
+      if (!employeeName) {
         status.innerText = "❌ Please enter your name.";
         status.className = "error";
         return;
-    }
+      }
 
-    let deviceId = localStorage.getItem("deviceId");
-    if (!deviceId) {
+      let deviceId = localStorage.getItem("deviceId");
+      if (!deviceId) {
         deviceId = "device-" + Math.random().toString(36).substr(2, 9);
         localStorage.setItem("deviceId", deviceId);
+      }
+
+      const reverseGeocodeUrl = `https://us1.locationiq.com/v1/reverse.php?key=pk.c3cdd32b37bc09080499ae0e61e8310f&lat=${lat}&lon=${lng}&format=json`;
+
+      fetch(reverseGeocodeUrl)
+        .then((response) => response.json())
+        .then((data) => {
+          const placeName = data.display_name || "Unknown Location";
+          console.log("📍 Detected Place Name:", placeName);
+
+          const url =
+            "https://script.google.com/macros/s/AKfycbzfZnQEumYSB_IS2gHR-OBKKOXJSI1akYX7in7Y5VRL5IHegETHLnYAQUzrii-n5n23/exec";
+
+          const params = {
+            method: "POST",
+            body: JSON.stringify({
+              latitude: lat,
+              longitude: lng,
+              locationName: placeName,
+              employee: employeeName,
+              status: checkInStatus,
+              deviceId: deviceId,
+            }),
+          };
+
+          fetch(url, params)
+            .then((response) => response.text())
+            .then((data) => {
+              console.log("✅ Google Sheet response:", data);
+              if (data.includes("already recorded within 12 hours")) {
+                alert("⚠️ You have already checked in within the last 12 hours!");
+              }
+            })
+            .catch((error) =>
+              console.error("❌ Google Sheet Error:", error)
+            );
+        })
+        .catch((error) => {
+          status.innerText = "❌ Could not fetch location name.";
+          status.className = "error";
+          console.error("❌ Reverse Geocoding Error:", error);
+        });
     }
 
-    let reverseGeocodeUrl = `https://us1.locationiq.com/v1/reverse.php?key=pk.c3cdd32b37bc09080499ae0e61e8310f&lat=${lat}&lon=${lng}&format=json`;
-
-    fetch(reverseGeocodeUrl)
-        .then(response => response.json())
-        .then(data => {
-            let placeName = data.display_name || "Unknown Location";
-            console.log("📍 Detected Place Name:", placeName);
-
-            let url = "https://script.google.com/macros/s/AKfycbzfZnQEumYSB_IS2gHR-OBKKOXJSI1akYX7in7Y5VRL5IHegETHLnYAQUzrii-n5n23/exec";
-            let params = {
-                method: "POST",
-                body: JSON.stringify({
-                    latitude: lat,
-                    longitude: lng,
-                    locationName: placeName,
-                    employee: employeeName,
-                    status: checkInStatus,
-                    deviceId: deviceId // Send unique device ID
-                })
-            };
-
-            fetch(url, params)
-                .then(response => response.text())
-                .then(data => {
-                    console.log("✅ Google Sheet response:", data);
-                    if (data.includes("already recorded within 12 hours")) {
-                        alert("⚠️ You have already checked in within the last 12 hours!");
-                    }
-                })
-                .catch(error => console.error("❌ Google Sheet Error:", error));
-        })
-        .catch(error => {
-            let status = document.getElementById("status");
-            status.innerText = "❌ Could not fetch location name.";
-            status.className = "error";
-            console.error("❌ Reverse Geocoding Error:", error);
-        });
-}
-
-
-
-   function showError(error) {
-       let status = document.getElementById("status");
-       status.className = "error";
-       switch (error.code) {
-           case error.PERMISSION_DENIED:
-               status.innerText = "❌ Location access denied. Please enable location.";
-               break;
-           case error.POSITION_UNAVAILABLE:
-               status.innerText = "❌ Location information is unavailable.";
-               break;
-           case error.TIMEOUT:
-               status.innerText = "❌ The request to get location timed out.";
-               break;
-           default:
-               status.innerText = "❌ An unknown error occurred.";
-               break;
-       }
-   }
-   </script>
-
+    function showError(error) {
+      const status = document.getElementById("status");
+      status.className = "error";
+      switch (error.code) {
+        case error.PERMISSION_DENIED:
+          status.innerText =
+            "❌ Location access denied. Please enable location.";
+          break;
+        case error.POSITION_UNAVAILABLE:
+          status.innerText = "❌ Location information is unavailable.";
+          break;
+        case error.TIMEOUT:
+          status.innerText = "❌ The request to get location timed out.";
+          break;
+        default:
+          status.innerText = "❌ An unknown error occurred.";
+          break;
+      }
+    }
+  </script>
 </body>
 </html>
