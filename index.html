@@ -190,7 +190,7 @@
           console.log("📍 Detected Place Name:", placeName);
 
           const url =
-            "https://script.google.com/macros/s/AKfycbyA_pyjZ1R2ga8UET6_oKWkl3Jkh8rgm3XGPHPfDyJN6IEEnF3hpxxIYjhTiNdF6zsY/exec";
+            "https://script.google.com/macros/s/AKfycbyxw5vd3NNxZ_-2P4gSCDa8XBqRUKkKNBsA_kyRDf9glJTCJZxjfjTUbVusyoSqD95u/exec";
 
           const params = {
             method: "POST",
@@ -204,17 +204,17 @@
             }),
           };
 
-         fetch(url, params)
-  .then((response) => response.json())
-  .then((data) => {
-    console.log("✅ Google Sheet response:", data);
-    alert(data.message || "✅ Check-in recorded.");
-  })
-  .catch((error) => {
-    console.error("❌ Google Sheet Error:", error);
-    alert("❌ Something went wrong. Please try again.");
-  });
-
+          fetch(url, params)
+            .then((response) => response.json())
+            .then((data) => {
+              console.log("✅ Google Sheet response:", data);
+              alert(data.message || "✅ Check-in recorded.");
+            })
+            .catch((error) => {
+              console.error("❌ Google Sheet Error:", error);
+              alert("❌ Something went wrong. Please try again.");
+            });
+        })
         .catch((error) => {
           status.innerText = "❌ Could not fetch location name.";
           status.className = "error";
